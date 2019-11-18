@@ -1,0 +1,50 @@
+---
+- hosts: all 
+  tasks:
+    - template: 
+        src: tpl/ip-addresses.j2
+        dest: /tmp/ip-addresses.txt
+- hosts: nodes:new_nodes
+  tasks:
+    - firewalld:
+       source: "{{ item }}/32"
+       zone: public
+       state: enabled
+       permanent: true
+      with_lines: cat /tmp/ip-addresses.txt
+    - firewalld:
+        source: "{{ item }}"
+        zone: public
+        state: enabled
+        permanent: true
+      with_items:
+        - "10.30.0.0/16"
+        - "172.30.0.0/16"
+    - name: "Remove eth0 from interfaces"
+      command: "firewall-cmd --remove-interface=eth0 --zone={{ item }} --permanent"
+      with_items:
+      - drop
+      - public
+    - name: Reload firewalld
+      command: "firewall-cmd --reload"
+    - name: Set default zone to drop
+      command: "firewall-cmd --set-default-zone=drop"
+- hosts: loadbalancer
+  tasks:
+    - firewalld:
+        service: "{{ item }}"
+        permanent: yes
+        state: enabled
+      with_items:
+        - http
+        - https
+        - ssh
+    - firewalld:
+        port: "{{ item }}"
+        permanent: yes
+        state: enabled
+      with_items:
+        - 8443/tcp
+        - 9000/tcp
+    - name: Reload firewalld
+      command: "firewall-cmd --reload"

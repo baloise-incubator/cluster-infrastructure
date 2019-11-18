@@ -1,0 +1,37 @@
+---
+- hosts: acme
+  environment:
+    LE_WORKING_DIR: "{{ acme_sh_path }}"
+    CF_Account_ID: "{{ dns['account_id'] }}"
+    CF_Token: "{{ dns['token'] }}"
+  tasks:
+  - name: Issue certificates
+    shell: "{{ acme_sh_path }}/acme.sh --issue {{ domain_args }} --dns {{ dns['type'] }} {{ '--staging' if acme_sh_stage == true else '' }}"
+    register: issue_output
+    failed_when: "issue_output.rc != 0 and 'Domains not changed' not in issue_output.stdout"
+  - name: Issue output
+    debug:
+      var: issue_output.stdout
+    when: issue_output.stdout_lines is defined    
+  - name: Add acme group
+    group:
+      name: acme
+      state: present
+  - name: Install certificates
+    shell: > 
+      {{ acme_sh_path }}/acme.sh --install-cert {{ domain_args }}
+      --cert-file {{ acme_cert_path }} 
+      --key-file {{ acme_key_path }} 
+      --fullchain-file {{ acme_fullchain_path }} 
+      --ca-file {{ acme_ca_path }} 
+  - name: Change certificate owner to centos user
+    file:
+      path: "{{ item }}"
+      owner: root
+      group: acme
+      mode: 0640
+    with_items:
+    - "{{ acme_cert_path }}"
+    - "{{ acme_key_path }}"
+    - "{{ acme_fullchain_path }}"
+    - "{{ acme_ca_path }}"

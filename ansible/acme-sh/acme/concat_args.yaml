@@ -1,0 +1,10 @@
+---
+- hosts: acme
+  tasks:
+  - name: Set empty string as fact
+    set_fact:
+      domain_args: ""
+  - name: Set domain args
+    set_fact:
+      domain_args: "{{ domain_args }}-d {{ item }} "
+    with_items: "{{ domains }}"

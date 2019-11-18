@@ -1,0 +1,42 @@
+---
+- hosts: letsencrypt
+  environment:
+    LE_WORKING_DIR: "{{ acme_sh_path }}"
+  tasks:
+  - name: Create acme.sh directory
+    file: 
+      path: "{{ acme_sh_path }}" 
+      state: directory
+      owner: root
+      group: root
+      mode: 0700
+  - name: Check if acme.sh installation exists
+    stat:
+      path: "{{ acme_sh_path }}/acme.sh"
+    register: acme_installation
+  - name: Get acme.sh install script
+    get_url:
+      url: https://get.acme.sh
+      dest: "{{ acme_sh_path }}/install.sh"
+      mode: 0700
+    when: acme_installation.stat.exists == False
+  - name: Install acme.sh
+    shell: "{{ acme_sh_path }}/install.sh"
+    register: install_output
+    when: acme_installation.stat.exists == False
+  - debug:
+      var: install_output.stdout_lines
+    when: install_output.stdout_lines is defined
+  - name: Update acme.sh
+    shell: "{{ acme_sh_path }}/acme.sh --upgrade"
+    register: update_output 
+    when: acme_installation.stat.exists == True
+  - debug:
+      var: update_output.stdout_lines
+    when: update_output.stdout_lines is defined
+  - name: Remove acme.sh cronjob
+    shell: "{{ acme_sh_path }}/acme.sh --uninstall-cronjob"
+    register: uninstall_cron_output
+  - debug:
+      var: uninstall_cron_output.stdout_lines
+    when: uninstall_cron_output.stdout_lines is defined

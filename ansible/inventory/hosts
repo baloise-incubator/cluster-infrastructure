@@ -1,0 +1,31 @@
+[OSEv3:children]
+masters
+etcd
+nodes
+
+[masters]
+master0.okd.baloise.dev  server_type="master"
+master1.okd.baloise.dev  server_type="master"
+master2.okd.baloise.dev  server_type="master"
+
+[etcd]
+master0.okd.baloise.dev  server_type="etcd"
+master1.okd.baloise.dev  server_type="etcd"
+master2.okd.baloise.dev  server_type="etcd"
+
+[nodes]
+master0.okd.baloise.dev  openshift_node_group_name='node-config-master'
+master1.okd.baloise.dev  openshift_node_group_name='node-config-master'
+master2.okd.baloise.dev  openshift_node_group_name='node-config-master'
+node0.okd.baloise.dev  openshift_node_group_name='node-config-compute-infra'
+node1.okd.baloise.dev  openshift_node_group_name='node-config-compute-infra'
+node2.okd.baloise.dev  openshift_node_group_name='node-config-compute-infra'
+
+[loadbalancer]
+lb0.okd.baloise.dev
+
+[bastion]
+bastion.okd.baloise.dev
+
+[acme]
+bastion.okd.baloise.dev

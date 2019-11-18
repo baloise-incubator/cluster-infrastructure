@@ -1,0 +1,19 @@
+ansible_connection: ssh
+ansible_become: yes
+acme_sh_stage: no
+acme_sh_path: /opt/acme.sh
+acme_cert_path: /etc/pki/tls/certs/domains.pem
+acme_key_path: /etc/pki/tls/private/domains-key.pem
+acme_fullchain_path: /etc/pki/tls/certs/domains-fullchain.pem
+acme_ca_path: /etc/pki/tls/certs/le-ca.cer
+dns:
+  type: dns_cf
+  account_id: "{{ cf_account_id }}" 
+  token: "{{ cf_token }}" 
+domains:
+  - "baloise.dev"
+  - "*.baloise.dev"
+  - "*.apps.baloise.dev"
+  - "*.cloud.baloise.dev"
+  - "*.lab.baloise.dev"
+  - "*.okd.baloise.dev"

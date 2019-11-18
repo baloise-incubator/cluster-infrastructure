@@ -1,0 +1,3 @@
+---
+- import_playbook: acme/copy_certificates.yaml
+- import_playbook: acme/reload_httpd.yaml

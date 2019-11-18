@@ -1,0 +1,19 @@
+---
+- hosts: target
+  tasks:
+  - name: Creating cert group
+    group:
+      name: cert
+      state: present
+  - name: Copy public certifiate files to hosts
+    copy:
+      src: "{{ item }}"
+      dest: "{{ item }}"
+      owner: root
+      group: cert
+      mode: 0640
+    with_items:
+    - "{{ acme_cert_path }}"
+    - "{{ acme_fullchain_path }}"
+    - "{{ acme_ca_path }}"
+    - "{{ acme_key_path }}"

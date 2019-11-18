@@ -1,0 +1,101 @@
+---
+- hosts: all
+  tasks:
+    - name: Install epel-release
+      yum:
+        name:
+          - epel-release
+        state: present
+    - name: yum update
+      yum:
+        name:
+          - "*"
+        state: latest
+    - name: Disable ssh password login
+      shell: "sed -i -e 's#PasswordAuthentication yes#PasswordAuthentication no#' /etc/ssh/sshd_config"
+    - name: restart sshd
+      service:
+        name: sshd
+        state: restarted
+    - name: Set hostname
+      hostname:
+        name: "{{ inventory_hostname }}"
+- hosts: bastion
+  tasks:
+    #  - name:
+    #    git:
+    #      repo: https://github.com/openshift/openshift-ansible
+    #      version: release-3.11
+    #      dest: /home/centos/openshift-ansible
+    - name: Install bastion packages
+      yum:
+        name:
+          - java-1.8.0-openjdk-headless
+          - httpd-tools
+          - patch
+        state: latest
+#  - name: Copy private key
+#    copy:
+#      src: /home/centos/.ssh/id_rsa
+#      dest: /home/centos/.ssh/id_rsa
+- hosts: all
+  tasks:
+    - sysctl:
+        name: vm.overcommit_memory
+        value: 1
+        sysctl_file: /etc/sysctl.d/99-openshift-custom.conf
+    - sysctl:
+        name: kernel.panic
+        value: 10
+        sysctl_file: /etc/sysctl.d/99-openshift-custom.conf
+    - sysctl:
+        name: kernel.panic_on_oops
+        value: 1
+        sysctl_file: /etc/sysctl.d/99-openshift-custom.conf
+    - sysctl:
+        name: vm.max_map_count
+        value: "1048575"
+        sysctl_file: /etc/sysctl.d/99-openshift-custom.conf
+
+    - name: Install required dependencies
+      yum:
+        name:
+          - epel-release
+          - tmux
+          - docker
+          - NetworkManager
+          - NetworkManager-tui
+          - pyOpenSSL
+          - htop
+          - wget
+          - net-tools
+          - bind-utils
+          - yum-utils
+          - iptables-services
+          - bridge-utils
+          - bash-completion
+          - kexec-tools
+          - sos
+          - psacct
+          - mlocate
+          - nc
+          - firewalld
+        state: latest
+      notify:
+        - restart docker
+    - name: ensure services are running
+      service:
+        name: "{{ item }}"
+        state: started
+        enabled: true
+      with_items:
+        - docker
+        - NetworkManager
+        - firewalld
+  handlers:
+    - name: restart docker
+      service:
+        name: docker
+        state: restarted
+
+
